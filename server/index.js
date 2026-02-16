@@ -58,9 +58,14 @@ const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min for profile and leaderboard
 let publicToken = null;
 let publicCache = { profile: null, leaderboard: null };
 
+// Returns { accessToken } or throws { code, message } (e.g. token expired)
 function getPublicAccessToken() {
-  if (!process.env.FITBIT_REFRESH_TOKEN) return Promise.resolve(null);
-  if (publicToken && Date.now() < publicToken.expiresAt) return Promise.resolve(publicToken.accessToken);
+  if (!process.env.FITBIT_REFRESH_TOKEN) {
+    return Promise.reject({ code: 'NOT_CONFIGURED', message: 'FITBIT_REFRESH_TOKEN not set. Connect at /auth/fitbit and set it in Render.' });
+  }
+  if (publicToken && Date.now() < publicToken.expiresAt) {
+    return Promise.resolve(publicToken.accessToken);
+  }
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: process.env.FITBIT_REFRESH_TOKEN,
@@ -80,7 +85,14 @@ function getPublicAccessToken() {
       };
       return publicToken.accessToken;
     })
-    .catch(() => null);
+    .catch((err) => {
+      const status = err.response?.status;
+      const fitbitMsg = err.response?.data?.errors?.[0]?.message;
+      if (status === 401 || (fitbitMsg && /expired|invalid|revoked/i.test(fitbitMsg))) {
+        return Promise.reject({ code: 'TOKEN_EXPIRED', message: 'Fitbit token expired or revoked. Reconnect: visit /auth/fitbit, then set the new FITBIT_REFRESH_TOKEN in Render and redeploy.' });
+      }
+      return Promise.reject({ code: 'REFRESH_FAILED', message: fitbitMsg || 'Could not refresh Fitbit token.' });
+    });
 }
 
 // Public API: profile (no login required)
@@ -89,16 +101,14 @@ app.get('/api/public/profile', (req, res) => {
     return res.json(publicCache.profile.data);
   }
   getPublicAccessToken()
-    .then((token) => {
-      if (!token) return res.status(503).json({ error: 'Public data not configured. Connect Fitbit once via /auth/fitbit and set FITBIT_REFRESH_TOKEN in Render.' });
-      return axios.get(`${FITBIT_API}/1/user/-/profile.json`, { headers: { Authorization: `Bearer ${token}` } });
-    })
+    .then((token) => axios.get(`${FITBIT_API}/1/user/-/profile.json`, { headers: { Authorization: `Bearer ${token}` } }))
     .then((r) => {
       if (!r || !r.data) return;
       publicCache.profile = { data: r.data, at: Date.now() };
       res.json(r.data);
     })
     .catch((e) => {
+      if (e.code && e.message) return res.status(503).json({ error: e.message, code: e.code });
       if (e.response && e.response.status) return res.status(e.response.status).json(e.response.data || { error: 'Fitbit API error' });
       res.status(503).json({ error: 'Could not load profile.' });
     });
@@ -110,16 +120,14 @@ app.get('/api/public/leaderboard', (req, res) => {
     return res.json(publicCache.leaderboard.data);
   }
   getPublicAccessToken()
-    .then((token) => {
-      if (!token) return res.status(503).json({ error: 'Public data not configured.' });
-      return axios.get(`${FITBIT_API}/1.1/user/-/leaderboard/friends.json`, { headers: { Authorization: `Bearer ${token}` } });
-    })
+    .then((token) => axios.get(`${FITBIT_API}/1.1/user/-/leaderboard/friends.json`, { headers: { Authorization: `Bearer ${token}` } }))
     .then((r) => {
       if (!r || !r.data) return;
       publicCache.leaderboard = { data: r.data, at: Date.now() };
       res.json(r.data);
     })
     .catch((e) => {
+      if (e.code && e.message) return res.status(503).json({ error: e.message, code: e.code });
       if (e.response && e.response.status) return res.status(e.response.status).json(e.response.data || { error: 'Fitbit API error' });
       res.status(503).json({ error: 'Could not load leaderboard.' });
     });
@@ -140,15 +148,13 @@ app.get('/api/public/steps', (req, res) => {
     return res.status(400).json({ error: 'startDate must be before or equal to endDate' });
   }
   getPublicAccessToken()
-    .then((token) => {
-      if (!token) return res.status(503).json({ error: 'Public data not configured.' });
-      return axios.get(`${FITBIT_API}/1/user/-/activities/steps/date/${start}/${end}.json`, { headers: { Authorization: `Bearer ${token}` } });
-    })
+    .then((token) => axios.get(`${FITBIT_API}/1/user/-/activities/steps/date/${start}/${end}.json`, { headers: { Authorization: `Bearer ${token}` } }))
     .then((r) => {
       if (!r || !r.data) return;
       res.json(r.data);
     })
     .catch((e) => {
+      if (e.code && e.message) return res.status(503).json({ error: e.message, code: e.code });
       if (e.response && e.response.status) return res.status(e.response.status).json(e.response.data || { error: 'Fitbit API error' });
       res.status(503).json({ error: 'Could not load steps.' });
     });

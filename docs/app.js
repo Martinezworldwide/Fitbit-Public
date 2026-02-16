@@ -33,7 +33,9 @@
           '</div></div>';
       })
       .catch((err) => {
-        el.innerHTML = '<p class="hint">' + (err && err.error ? escapeHtml(err.error) : 'Could not load profile.') + '</p>';
+        const msg = err && err.error ? escapeHtml(err.error) : 'Could not load profile.';
+        const reconnect = (err && err.code === 'TOKEN_EXPIRED') ? ' <a href="' + escapeHtml(API) + '/auth/fitbit" target="_blank" rel="noopener">Reconnect Fitbit</a>' : '';
+        el.innerHTML = '<p class="hint">' + msg + reconnect + '</p>';
       });
   }
 
@@ -69,7 +71,9 @@
         el.innerHTML = rows;
       })
       .catch((err) => {
-        el.innerHTML = '<p class="hint">' + (err && err.error ? escapeHtml(err.error) : 'Could not load leaderboard.') + '</p>';
+        const msg = err && err.error ? escapeHtml(err.error) : 'Could not load leaderboard.';
+        const reconnect = (err && err.code === 'TOKEN_EXPIRED') ? ' <a href="' + escapeHtml(API) + '/auth/fitbit" target="_blank" rel="noopener">Reconnect Fitbit</a>' : '';
+        el.innerHTML = '<p class="hint">' + msg + reconnect + '</p>';
       });
   }
 
