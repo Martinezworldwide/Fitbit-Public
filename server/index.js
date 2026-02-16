@@ -16,11 +16,21 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// CORS: allow GitHub Pages origin (no credentials needed for public API)
+// CORS: allow GitHub Pages origin. Browser sends origin without path (e.g. https://martinezworldwide.github.io).
+// Normalize FRONTEND_ORIGIN to origin (scheme+host+port) so path in env is ignored.
+function allowedOrigin() {
+  if (FRONTEND_ORIGIN === '*') return '*';
+  try {
+    return new URL(FRONTEND_ORIGIN).origin;
+  } catch {
+    return FRONTEND_ORIGIN;
+  }
+}
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const allow = FRONTEND_ORIGIN === '*' ? '*' : (origin === FRONTEND_ORIGIN ? origin : FRONTEND_ORIGIN);
-  res.setHeader('Access-Control-Allow-Origin', allow);
+  const allow = allowedOrigin();
+  const ok = allow === '*' || (origin && origin === allow);
+  if (ok) res.setHeader('Access-Control-Allow-Origin', origin || allow);
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
