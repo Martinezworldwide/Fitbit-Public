@@ -52,7 +52,8 @@ const FITBIT_API = 'https://api.fitbit.com';
 const FITBIT_AUTHORIZE = 'https://www.fitbit.com/oauth2';
 const FITBIT_TOKEN_URL = 'https://api.fitbit.com/oauth2/token';
 const SCOPES = 'activity profile social';
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min for profile and leaderboard
+// Cache profile/leaderboard for 24h so we hit Fitbit at most once per day (and only refresh access token when needed)
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 // In-memory: public Fitbit token and cached data (one account, from FITBIT_REFRESH_TOKEN)
 let publicToken = null;

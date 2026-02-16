@@ -137,6 +137,14 @@ If the frontend cannot load profile or leaderboard (CORS or 403), the backend ma
 
 ---
 
+## Refresh token and longevity
+
+- **Why it was revoked:** Fitbit doesn’t publish an exact refresh-token lifetime. Tokens can be invalidated after inactivity, password change, or if you revoke the app in your Fitbit account. Our backend only uses the token when it needs a new access token (e.g. after a Render restart or after ~8 hours).
+- **What we do:** Profile and leaderboard are cached for **24 hours**, so we call Fitbit at most once per day for that data. The refresh token is only used when the in-memory access token is missing or expired (e.g. after a deploy or service spin-down).
+- **To reduce revokes:** Avoid revoking the app in Fitbit; avoid redeploying more than needed. On Render free tier, spin-down clears in-memory state so the first request after wake-up uses the refresh token again.
+
+---
+
 ## Local development
 
 - **Backend:** Copy `env.example` to `.env`. Set `FITBIT_CLIENT_ID`, `FITBIT_CLIENT_SECRET`, `REDIRECT_URI=http://localhost:3000/auth/callback`, `BASE_URL=http://localhost:3000`, `FRONTEND_ORIGIN=http://localhost:3000`. Get `FITBIT_REFRESH_TOKEN` by visiting `http://localhost:3000/auth/fitbit` once (with Fitbit app redirect URI set to `http://localhost:3000/auth/callback` for local testing) and copying the token from the page into `.env`. Run `npm start`.
