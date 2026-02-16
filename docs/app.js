@@ -1,13 +1,13 @@
 /**
  * Fitbit High Score – GitHub Pages frontend.
- * Calls backend at window.API_BASE_URL (set in config.js) with credentials.
+ * Public view: no login. Fetches profile, leaderboard, and steps from backend public API.
  */
 (function () {
   const API = window.API_BASE_URL;
 
-  function api(path, options) {
+  function api(path) {
     const url = path.startsWith('http') ? path : `${API.replace(/\/$/, '')}${path.startsWith('/') ? '' : '/'}${path}`;
-    return fetch(url, { credentials: 'include', ...options });
+    return fetch(url);
   }
 
   function showMessage(text, type) {
@@ -18,67 +18,29 @@
     setTimeout(() => el.classList.add('hidden'), 5000);
   }
 
-  function renderAuth(loggedIn) {
-    const area = document.getElementById('auth-area');
-    if (loggedIn) {
-      area.innerHTML = '<button type="button" class="btn secondary" id="btn-logout">Log out</button>';
-      document.getElementById('btn-logout').addEventListener('click', logout);
-    } else {
-      area.innerHTML = '<a href="' + API + '/auth/fitbit" class="btn">Log in with Fitbit</a>';
-    }
-  }
-
-  function logout() {
-    api('/auth/logout', { method: 'POST' })
-      .then(() => {
-        document.getElementById('main').classList.add('hidden');
-        renderAuth(false);
-      })
-      .catch(() => renderAuth(false));
-  }
-
-  function checkAuth() {
-    api('/api/profile')
-      .then((r) => {
-        if (r.ok) {
-          document.getElementById('main').classList.remove('hidden');
-          renderAuth(true);
-          loadProfile();
-          loadLeaderboard();
-          setDefaultChallengeDates();
-        } else {
-          renderAuth(false);
-          document.getElementById('main').classList.add('hidden');
-        }
-      })
-      .catch(() => {
-        renderAuth(false);
-        document.getElementById('main').classList.add('hidden');
-      });
-  }
-
   function loadProfile() {
-    api('/api/profile')
-      .then((r) => r.ok ? r.json() : Promise.reject())
+    const el = document.getElementById('profile-content');
+    api('/api/public/profile')
+      .then((r) => (r.ok ? r.json() : r.json().then((j) => Promise.reject(j))))
       .then((data) => {
         const u = data.user || {};
-        const html =
+        el.innerHTML =
           '<div class="profile-card">' +
           (u.avatar150 ? '<img class="avatar" src="' + u.avatar150 + '" alt="" />' : '') +
-          '<div><strong>' + (u.displayName || u.fullName || 'User') + '</strong>' +
+          '<div><strong>' + escapeHtml(u.displayName || u.fullName || 'User') + '</strong>' +
           (u.averageDailySteps != null ? '<div class="stat">Avg daily steps <strong>' + Number(u.averageDailySteps).toLocaleString() + '</strong></div>' : '') +
-          (u.memberSince ? '<div class="stat">Member since <strong>' + u.memberSince + '</strong></div>' : '') +
+          (u.memberSince ? '<div class="stat">Member since <strong>' + escapeHtml(u.memberSince) + '</strong></div>' : '') +
           '</div></div>';
-        document.getElementById('profile-content').innerHTML = html;
       })
-      .catch(() => {
-        document.getElementById('profile-content').innerHTML = '<p class="hint">Could not load profile.</p>';
+      .catch((err) => {
+        el.innerHTML = '<p class="hint">' + (err && err.error ? escapeHtml(err.error) : 'Could not load profile.') + '</p>';
       });
   }
 
   function loadLeaderboard() {
-    api('/api/leaderboard')
-      .then((r) => r.ok ? r.json() : Promise.reject())
+    const el = document.getElementById('leaderboard-content');
+    api('/api/public/leaderboard')
+      .then((r) => (r.ok ? r.json() : r.json().then((j) => Promise.reject(j))))
       .then((data) => {
         const list = data.data || [];
         const included = (data.included || []).reduce((acc, p) => {
@@ -87,8 +49,7 @@
         }, {});
 
         if (list.length === 0) {
-          document.getElementById('leaderboard-content').innerHTML =
-            '<p class="hint">No leaderboard data. Add friends on Fitbit and ask them to authorize this app.</p>';
+          el.innerHTML = '<p class="hint">No leaderboard data yet.</p>';
           return;
         }
 
@@ -102,14 +63,13 @@
           const steps = attrs['step-summary'] != null ? Number(attrs['step-summary']).toLocaleString() : '–';
           const rankClass = rank <= 3 ? 'rank-' + rank : '';
           rows += '<tr><td class="rank ' + rankClass + '">' + (rank || '–') + '</td><td class="avatar-cell">' +
-            (avatar ? '<img src="' + avatar + '" alt="" />' : '') + '</td><td>' + escapeHtml(name) + '</td><td>' + steps + '</td></tr>';
+            (avatar ? '<img src="' + escapeHtml(avatar) + '" alt="" />' : '') + '</td><td>' + escapeHtml(name) + '</td><td>' + steps + '</td></tr>';
         });
         rows += '</tbody></table>';
-        document.getElementById('leaderboard-content').innerHTML = rows;
+        el.innerHTML = rows;
       })
-      .catch(() => {
-        document.getElementById('leaderboard-content').innerHTML =
-          '<p class="hint">Could not load leaderboard. Ensure you have the social scope and friends who use this app.</p>';
+      .catch((err) => {
+        el.innerHTML = '<p class="hint">' + (err && err.error ? escapeHtml(err.error) : 'Could not load leaderboard.') + '</p>';
       });
   }
 
@@ -126,6 +86,7 @@
   }
 
   function escapeHtml(s) {
+    if (s == null) return '';
     const div = document.createElement('div');
     div.textContent = s;
     return div.innerHTML;
@@ -138,30 +99,21 @@
       showMessage('Pick start and end dates.', 'error');
       return;
     }
-    api('/api/steps?startDate=' + encodeURIComponent(start) + '&endDate=' + encodeURIComponent(end))
-      .then((r) => r.ok ? r.json() : r.json().then((j) => Promise.reject(j)))
+    const contentEl = document.getElementById('challenge-content');
+    contentEl.innerHTML = '<p class="hint">Loading…</p>';
+    api('/api/public/steps?startDate=' + encodeURIComponent(start) + '&endDate=' + encodeURIComponent(end))
+      .then((r) => (r.ok ? r.json() : r.json().then((j) => Promise.reject(j))))
       .then((data) => {
         const activities = data['activities-steps'] || [];
         const total = activities.reduce((sum, d) => sum + parseInt(d.value || 0, 10), 0);
-        const html = '<p class="steps-summary">Total steps: <strong>' + total.toLocaleString() + '</strong> (' + activities.length + ' days)</p>';
-        document.getElementById('challenge-content').innerHTML = html;
+        contentEl.innerHTML = '<p class="steps-summary">Total steps: <strong>' + total.toLocaleString() + '</strong> (' + activities.length + ' days)</p>';
       })
       .catch((err) => {
-        document.getElementById('challenge-content').innerHTML =
-          '<p class="hint">Could not load steps. ' + (err && err.error ? err.error : '') + '</p>';
+        contentEl.innerHTML = '<p class="hint">' + (err && err.error ? escapeHtml(err.error) : 'Could not load steps.') + '</p>';
       });
   });
 
-  // Handle ?logged_in=1 and ?error= from OAuth redirect
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('logged_in') === '1') {
-    history.replaceState({}, '', window.location.pathname);
-    checkAuth();
-    showMessage('Logged in successfully.', 'success');
-  } else if (params.get('error')) {
-    history.replaceState({}, '', window.location.pathname);
-    showMessage('Login failed: ' + params.get('error'), 'error');
-  }
-
-  checkAuth();
+  setDefaultChallengeDates();
+  loadProfile();
+  loadLeaderboard();
 })();

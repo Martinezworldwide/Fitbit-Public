@@ -27,14 +27,15 @@ body {
   padding: 1.5rem;
 }
 
-header {
+.header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
 h1 {
-  font-size: 1.75rem;
+  font-size: 2rem;
   margin: 0 0 0.25rem 0;
+  font-weight: 700;
 }
 
 .tagline {
@@ -42,8 +43,32 @@ h1 {
   margin: 0 0 1rem 0;
 }
 
-#auth-area {
+.auth-area {
   min-height: 2.5rem;
+}
+
+/* Logged-out welcome card */
+.welcome {
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.welcome h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.35rem;
+}
+
+.welcome p {
+  color: var(--muted);
+  margin: 0 0 1.5rem 0;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcome .btn-primary {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
 }
 
 .btn {
@@ -60,6 +85,11 @@ h1 {
 
 .btn:hover {
   filter: brightness(1.1);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 .btn.secondary {
