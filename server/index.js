@@ -16,21 +16,24 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// CORS: allow GitHub Pages origin. Browser sends origin without path (e.g. https://martinezworldwide.github.io).
-// Normalize FRONTEND_ORIGIN to origin (scheme+host+port) so path in env is ignored.
-function allowedOrigin() {
-  if (FRONTEND_ORIGIN === '*') return '*';
-  try {
-    return new URL(FRONTEND_ORIGIN).origin;
-  } catch {
-    return FRONTEND_ORIGIN;
-  }
+// CORS: allow frontend origin(s). Use comma-separated list for multiple (e.g. GitHub Pages + Vercel).
+// Normalize each to origin (scheme+host+port); path in env is ignored.
+function getAllowedOrigins() {
+  if (FRONTEND_ORIGIN === '*') return ['*'];
+  return FRONTEND_ORIGIN.split(',').map((s) => {
+    const t = s.trim();
+    try {
+      return new URL(t).origin;
+    } catch {
+      return t;
+    }
+  }).filter(Boolean);
 }
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  const allow = allowedOrigin();
-  const ok = allow === '*' || (origin && origin === allow);
-  if (ok) res.setHeader('Access-Control-Allow-Origin', origin || allow);
+  const allowed = getAllowedOrigins();
+  const ok = allowed.includes('*') || (origin && allowed.includes(origin));
+  if (ok) res.setHeader('Access-Control-Allow-Origin', origin || allowed[0] || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
@@ -236,10 +239,10 @@ app.get('/', (req, res) => res.json({ name: 'Fitbit High Score API', routes: ['/
 
 // 404: still send CORS so the browser shows the real error, not a CORS error
 app.use((req, res) => {
-  const allow = allowedOrigin();
+  const allowed = getAllowedOrigins();
   const origin = req.headers.origin;
-  const ok = allow === '*' || (origin && origin === allow);
-  if (ok) res.setHeader('Access-Control-Allow-Origin', origin || allow);
+  const ok = allowed.includes('*') || (origin && allowed.includes(origin));
+  if (ok) res.setHeader('Access-Control-Allow-Origin', origin || allowed[0] || '*');
   res.status(404).json({ error: 'Not found', path: req.path });
 });
 
