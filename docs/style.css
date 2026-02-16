@@ -1,0 +1,221 @@
+/* Fitbit High Score – GitHub Pages frontend */
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #00b4d8;
+  --green: #3fb950;
+  --gold: #d4a853;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.tagline {
+  color: var(--muted);
+  margin: 0 0 1rem 0;
+}
+
+#auth-area {
+  min-height: 2.5rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  filter: brightness(1.1);
+}
+
+.btn.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--muted);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.card h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Profile */
+#profile-content .profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+#profile-content .avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+#profile-content .stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+#profile-content .stat {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+#profile-content .stat strong {
+  color: var(--text);
+  display: block;
+}
+
+/* Leaderboard */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.leaderboard-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.leaderboard-table .rank {
+  width: 3rem;
+}
+
+.leaderboard-table .rank-1 { color: var(--gold); }
+.leaderboard-table .rank-2 { color: var(--muted); }
+.leaderboard-table .rank-3 { color: #b8860b; }
+
+.leaderboard-table .avatar-cell {
+  width: 40px;
+}
+
+.leaderboard-table .avatar-cell img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Challenge controls */
+.challenge-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.challenge-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.challenge-controls input[type="date"] {
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  color: var(--text);
+  padding: 0.35rem;
+  border-radius: 4px;
+}
+
+#challenge-content .steps-summary {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+}
+
+#challenge-content .steps-summary strong {
+  color: var(--accent);
+}
+
+/* Message */
+.message {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  max-width: 90%;
+  z-index: 10;
+}
+
+.message.error {
+  background: #8b2635;
+  color: #fff;
+}
+
+.message.success {
+  background: var(--green);
+  color: var(--bg);
+}
+
+.message.info {
+  background: var(--surface);
+  border: 1px solid var(--muted);
+}

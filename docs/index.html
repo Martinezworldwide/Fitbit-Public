@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fitbit High Score</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Fitbit High Score</h1>
+      <p class="tagline">Your profile, leaderboard, and step challenges</p>
+      <div id="auth-area"></div>
+    </header>
+
+    <main id="main" class="hidden">
+      <section id="profile-section" class="card">
+        <h2>My profile</h2>
+        <div id="profile-content"></div>
+      </section>
+
+      <section id="leaderboard-section" class="card">
+        <h2>High score – Friends leaderboard</h2>
+        <p class="hint">Last 7 days. Friends must have shared data with this app.</p>
+        <div id="leaderboard-content"></div>
+      </section>
+
+      <section id="challenge-section" class="card">
+        <h2>Step challenge</h2>
+        <p class="hint">Compare your steps over a date range (your data only for custom range).</p>
+        <div class="challenge-controls">
+          <label>Start date <input type="date" id="challenge-start" /></label>
+          <label>End date <input type="date" id="challenge-end" /></label>
+          <button type="button" id="challenge-load">Load my steps</button>
+        </div>
+        <div id="challenge-content"></div>
+      </section>
+    </main>
+
+    <div id="message" class="message hidden"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

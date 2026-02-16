@@ -1,0 +1,14 @@
+# Render Blueprint: deploy backend from this repo.
+# In Dashboard: New -> Web Service, connect repo; or use "Apply" with this file.
+services:
+  - type: web
+    name: fitbit-high-score-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set these in Render Dashboard -> Environment (do not commit secrets):
+      # FITBIT_CLIENT_ID, FITBIT_CLIENT_SECRET, REDIRECT_URI, BASE_URL,
+      # FRONTEND_ORIGIN, SESSION_SECRET
