@@ -39,7 +39,8 @@ const limiter = rateLimit({
 app.use(limiter);
 
 const FITBIT_API = 'https://api.fitbit.com';
-const FITBIT_OAUTH = 'https://www.fitbit.com/oauth2';
+const FITBIT_AUTHORIZE = 'https://www.fitbit.com/oauth2';
+const FITBIT_TOKEN_URL = 'https://api.fitbit.com/oauth2/token';
 const SCOPES = 'activity profile social';
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min for profile and leaderboard
 
@@ -58,7 +59,7 @@ function getPublicAccessToken() {
   const authHeader = Buffer.from(
     `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
   ).toString('base64');
-  return axios.post(`${FITBIT_OAUTH}/token`, body, {
+  return axios.post(FITBIT_TOKEN_URL, body, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${authHeader}` }
   })
     .then((r) => {
@@ -167,7 +168,7 @@ app.get('/auth/fitbit', (req, res) => {
     code_challenge_method: 'S256',
     state: setupState
   });
-  res.redirect(`${FITBIT_OAUTH}/authorize?${params}`);
+  res.redirect(`${FITBIT_AUTHORIZE}/authorize?${params}`);
 });
 
 app.get('/auth/callback', (req, res) => {
@@ -186,7 +187,7 @@ app.get('/auth/callback', (req, res) => {
   const authHeader = Buffer.from(
     `${process.env.FITBIT_CLIENT_ID}:${process.env.FITBIT_CLIENT_SECRET}`
   ).toString('base64');
-  axios.post(`${FITBIT_OAUTH}/token`, body, {
+  axios.post(FITBIT_TOKEN_URL, body, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', Authorization: `Basic ${authHeader}` }
   })
     .then((tokenRes) => {
