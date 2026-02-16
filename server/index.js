@@ -224,6 +224,18 @@ app.get('/auth/callback', (req, res) => {
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
+// Root: confirm this is the Fitbit High Score API (helps verify correct Render service)
+app.get('/', (req, res) => res.json({ name: 'Fitbit High Score API', routes: ['/api/public/profile', '/api/public/leaderboard', '/api/public/steps', '/auth/fitbit', '/health'] }));
+
+// 404: still send CORS so the browser shows the real error, not a CORS error
+app.use((req, res) => {
+  const allow = allowedOrigin();
+  const origin = req.headers.origin;
+  const ok = allow === '*' || (origin && origin === allow);
+  if (ok) res.setHeader('Access-Control-Allow-Origin', origin || allow);
+  res.status(404).json({ error: 'Not found', path: req.path });
+});
+
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

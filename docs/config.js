@@ -1,3 +1,3 @@
-// API base URL: set to your Render backend (e.g. https://fitbit-high-score-api.onrender.com).
+// API base URL: Render backend (no trailing slash).
 // For local dev use http://localhost:3000
-window.API_BASE_URL = window.API_BASE_URL || 'https://fitbit-high-score-api.onrender.com';
+window.API_BASE_URL = window.API_BASE_URL || 'https://fitbit-public-backend.onrender.com';
