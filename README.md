@@ -147,10 +147,17 @@ If the frontend cannot load profile or leaderboard (CORS or 403), the backend ma
 
 ## Keep backend warm (24/7)
 
-So the refresh token is only used when the access token expires (~8 hours), not on every cold start, the repo includes a **Vercel Cron** that pings the Render backend every 10 minutes.
+So the refresh token is only used when the access token expires (~8 hours), not on every cold start, use an external cron to ping your backend every 10 minutes. The app exposes `/api/keep-warm` on Vercel, which calls the Render backend.
 
-- **If you deploy the frontend to Vercel:** The cron is defined in `vercel.json` and calls `/api/keep-warm` every 10 min. That hits your Render backend’s `/health` so the service stays awake. No extra setup unless your backend URL is different: in Vercel → Project → **Settings** → **Environment Variables**, add **FITBIT_BACKEND_URL** = `https://fitbit-public-backend.onrender.com` (or your Render URL).
-- **Cron availability:** Vercel Cron runs on **Pro** (and some team plans). On the Hobby plan you can use a free external cron (e.g. [cron-job.org](https://cron-job.org)) to call `https://<your-vercel-app>/api/keep-warm` every 10 minutes instead.
+### Set up cron-job.org (free)
+
+1. Go to **[cron-job.org](https://cron-job.org)** and create a free account.
+2. Open **Cron Jobs** → **Create cron job**.
+3. **Title:** e.g. `Fitbit backend keep-warm`.
+4. **URL:** `https://fitbit-challenges.vercel.app/api/keep-warm` (or your Vercel app URL + `/api/keep-warm`).
+5. **Schedule:** choose **Every 10 minutes** (or **Interval** → 10 minutes).
+6. **Request method:** GET.
+7. Save. The job will run every 10 minutes and keep Render awake so you use the refresh token only about every 8 hours.
 
 ---
 

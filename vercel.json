@@ -3,11 +3,5 @@
     { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/", "destination": "/docs/index.html" },
     { "source": "/(.*)", "destination": "/docs/$1" }
-  ],
-  "crons": [
-    {
-      "path": "/api/keep-warm",
-      "schedule": "*/10 * * * *"
-    }
   ]
 }
