@@ -145,6 +145,15 @@ If the frontend cannot load profile or leaderboard (CORS or 403), the backend ma
 
 ---
 
+## Keep backend warm (24/7)
+
+So the refresh token is only used when the access token expires (~8 hours), not on every cold start, the repo includes a **Vercel Cron** that pings the Render backend every 10 minutes.
+
+- **If you deploy the frontend to Vercel:** The cron is defined in `vercel.json` and calls `/api/keep-warm` every 10 min. That hits your Render backend’s `/health` so the service stays awake. No extra setup unless your backend URL is different: in Vercel → Project → **Settings** → **Environment Variables**, add **FITBIT_BACKEND_URL** = `https://fitbit-public-backend.onrender.com` (or your Render URL).
+- **Cron availability:** Vercel Cron runs on **Pro** (and some team plans). On the Hobby plan you can use a free external cron (e.g. [cron-job.org](https://cron-job.org)) to call `https://<your-vercel-app>/api/keep-warm` every 10 minutes instead.
+
+---
+
 ## Local development
 
 - **Backend:** Copy `env.example` to `.env`. Set `FITBIT_CLIENT_ID`, `FITBIT_CLIENT_SECRET`, `REDIRECT_URI=http://localhost:3000/auth/callback`, `BASE_URL=http://localhost:3000`, `FRONTEND_ORIGIN=http://localhost:3000`. Get `FITBIT_REFRESH_TOKEN` by visiting `http://localhost:3000/auth/fitbit` once (with Fitbit app redirect URI set to `http://localhost:3000/auth/callback` for local testing) and copying the token from the page into `.env`. Run `npm start`.
